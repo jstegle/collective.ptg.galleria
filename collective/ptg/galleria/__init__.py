@@ -12,11 +12,8 @@ _ = MessageFactory('collective.ptg.galleria')
 class IGalleriaDisplaySettings(IBaseSettings):
     galleria_theme = schema.Choice(
         title=_(u"galleria_theme_title", default=u"Theme"),
-        default='light',
+        default='classic',
         vocabulary=SimpleVocabulary([
-            SimpleTerm('dark', 'dark', _(u"label_dark", default=u"Dark")),
-            SimpleTerm('light', 'light', _(u"label_light", default=u"Light")),
-            SimpleTerm('fullscreen', 'fullscreen', _(u"label_fullscreen", default=u"Fullscreen")),
             SimpleTerm('classic', 'classic', _(u"label_classic",
                                                default=u"Classic"))
         ]))
@@ -48,17 +45,17 @@ class IGalleriaDisplaySettings(IBaseSettings):
         title=_(u'galleria_label_galleria_height', default="Height of gallery"),
         description=_(u'galleria_galleria_height',
             default="Height in pixels"),
-        default=300) 
+        default=300)
     galleria_imagenav = schema.Bool(
         title=_(u'galleria_label_imagenav', default="Enable Imagenav"),
         description=_(u'galleria_imagenav',
             default="enable the next and previous button"),
-        default=True) 
+        default=True)
     galleria_thumbnails = schema.Bool(
         title=_(u'galleria_label_thumbnails', default="Enable Thumbnails"),
         description=_(u'galleria_thumbnails',
             default="enable the thumbnails at bottom"),
-        default=True)      
+        default=True)
     galleria_lightbox = schema.Bool(
         title=_(u'galleria_label_lightbox', default="Enable lightbox"),
         description=_(u'galleria_lightbox',
@@ -68,22 +65,22 @@ class IGalleriaDisplaySettings(IBaseSettings):
         title=_(u'galleria_carousel', default="Enable carousel"),
         description=_(u'galleria_carousel',
             default="enable carousel for thumbnails (you want this ON)"),
-        default=True)  
+        default=True)
     galleria_carousel_steps = schema.Int(
         title=_(u'galleria_carousel_steps', default="Carousel steps"),
         description=_(u'Carousel steps',
             default="Defines how many 'steps' the carousel should take on each nav click."),
-        default=1)  
+        default=1)
     galleria_zoom = schema.Bool(
         title=_(u'galleria_zoom', default="Enable CSS3 zooming (kind of ken burns effect) "),
         description=_(u'galleria_zoom',
             default="Enables ken burns zoom effect for modern browsers"),
-        default=False)   
+        default=False)
     galleria_responsive = schema.Bool(
         title=_(u'galleria_responsive', default="Resposive mode"),
         description=_(u'galleria_responsive',
             default="this setting is only useful if your theme is responsive"),
-        default=False)    
+        default=False)
     galleria_history = schema.Bool(
         title=_(u'galleria_history', default="Enable history plugin"),
         description=_(u'galleria_history',
@@ -102,61 +99,47 @@ class GalleriaDisplayType(BaseDisplayType):
         default=u"Galleria")
 
     js_theme_files = {
-        'dark': '++resource++ptg.galleria/dark.js',
-        'light': '++resource++ptg.galleria/light.js',
-        'classic': '++resource++ptg.galleria/classic.js',
-        'fullscreen': '++resource++ptg.galleria/fullscreen.js'
+        'classic': '++resource++ptg.galleria/themes/classic/galleria.classic.js',
     }
     css_theme_files = {
-        'dark': '++resource++ptg.galleria/dark.css',
-        'light': '++resource++ptg.galleria/light.css',
-        'classic': '++resource++ptg.galleria/classic.css',
-        'fullscreen': '++resource++ptg.galleria/fullscreen.css'
+        'classic': '++resource++ptg.galleria/themes/classic/galleria.classic.css',
     }
 
     def css(self):
-        zoomsheet = ' '
-        if self.settings.galleria_zoom:
-            zoomsheet = """<link rel="stylesheet" type="text/css"
-                         href="++resource++ptg.galleria/zoom.css" />""" 
         return u"""
 <link rel="stylesheet" type="text/css"
     href="%(portal_url)s/%(css_file)s" />
-%(zoomsheet)s
 """ % {
             'portal_url': self.portal_url,
             'css_file': self.css_theme_files[self.settings.galleria_theme],
-            'zoomsheet': zoomsheet,
         }
 
     def javascript(self):
         return u"""
+<script src="%(portal_url)s/++resource++ptg.galleria/jquery-1.11.3.js"></script>
 <script type="text/javascript"
-    src="%(portal_url)s/++resource++ptg.galleria/galleria.js"></script>
-<script type="text/javascript"
-    src="%(portal_url)s/%(js_file)s"></script>
+    src="%(portal_url)s/++resource++ptg.galleria/galleria-1.4.2.js"></script>
 <script type="text/javascript">
-(function($){
-$(document).ready(function() {
-    // Initialize Galleria
-    $('#galleria').galleria({
-        transitionSpeed: %(duration)i,
-        transition: "%(transition)s",
-        autoplay: %(autoplay)s,
-        clicknext: true,
-        showInfo: %(showInfo)s,
-        lightbox: %(lightbox)s,
-        carousel: %(carousel)s,
-        responsive: %(responsive)s,
-        carouselSteps: %(carousel_steps)s,
-        trueFullscreen: true,
-        thumbnails: %(thumbnails)s,
-        showImagenav: %(imagenav)s,
-        height: %(height)i
-    });
+    var jq1113 = jQuery.noConflict(true);
+    jq1113(function(){
+        Galleria.loadTheme('%(js_file)s');
+        Galleria.run('#galleria');
+        Galleria.configure({
+            transitionSpeed: %(duration)i,
+            transition: "%(transition)s",
+            autoplay: %(autoplay)s,
+            clicknext: true,
+            showInfo: %(showInfo)s,
+            lightbox: %(lightbox)s,
+            carousel: %(carousel)s,
+            responsive: %(responsive)s,
+            carouselSteps: %(carousel_steps)s,
+            trueFullscreen: true,
+            thumbnails: %(thumbnails)s,
+            showImagenav: %(imagenav)s,
+            height: %(height)i
+        });
 });
-})(jQuery);
-
 </script>
 """ % {
         'portal_url': self.portal_url,
@@ -186,5 +169,5 @@ $(document).ready(function() {
         return """%s (<a class="download" href="%s">Download</a>)""" %(
             img['description'],
             img.get('download_url', img.get('image_url')))
-            
+
 GalleriaSettings = createSettingsFactory(GalleriaDisplayType.schema)
